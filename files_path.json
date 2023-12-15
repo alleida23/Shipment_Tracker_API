@@ -1,0 +1,10 @@
+{
+  "Albert": {
+    "excel_tests_file_path": "./Shipment Data/Daily Report Shipments of Spare Parts.xlsx",
+    "folder_save_to_excel_path": "./Track Reports"
+  },
+  "Logisteed": {
+    "excel_tests_file_path": "./Testsinmacro.xlsx",
+    "folder_save_to_excel_path": "./REPORT/"
+  }
+}
