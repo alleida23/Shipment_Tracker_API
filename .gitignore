@@ -6,3 +6,8 @@ Track\ Report/*.xlsx
 
 # Ignore all files inside 'Carrier API Data' folder
 Carrier\ API\ Data/*
+
+# Ignore all files inside 'Carrier API Data' folder
+ChromeDriver/*
+
+
