@@ -1,10 +1,12 @@
 {
   "Albert": {
     "excel_tests_file_path": "./Shipment Data/Daily Report Shipments of Spare Parts.xlsx",
-    "folder_save_to_excel_path": "./Track Reports"
+    "folder_save_to_excel_path": "./Track Reports",
+    "chromedriver_path":"./ChromeDriver/chromedriver-mac-arm64/chromedriver"
   },
   "Logisteed": {
     "excel_tests_file_path": "./Testsinmacro.xlsx",
     "folder_save_to_excel_path": "./REPORT/"
+    "chromedriver_path":"None"
   }
 }
