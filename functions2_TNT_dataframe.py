@@ -129,7 +129,7 @@ def map_summary_code(summary_code):
     else:
         return summary_code
 
-def tnt_to_dataframe(tnt_results, len_shipm_numbers):
+def tnt_to_dataframe(tnt_results, len_shipm_numbers, report_path):
     
     """
     Convert TNT shipment data to a formatted DataFrame.
@@ -145,6 +145,7 @@ def tnt_to_dataframe(tnt_results, len_shipm_numbers):
     import pandas as pd
     from datetime import date
     
+    from functions0_basics import save_to_excel
     from functions2_TNT_dataframe import (extract_TNT_data,
                                           calculate_processing_days,
                                           map_summary_code)
@@ -152,47 +153,52 @@ def tnt_to_dataframe(tnt_results, len_shipm_numbers):
     tnt_data = extract_TNT_data(tnt_results, len_shipm_numbers)
     
     # Convert list of dictionaries to DataFrame
-    tnt_df = pd.DataFrame(tnt_data)
+    df = pd.DataFrame(tnt_data)
     
     # Update 'Exception Notification' based on the condition
-    tnt_df.loc[tnt_df['Summary Code'] == 'EXC', 'Exception Notification'] = 'Exception Alert'
+    df.loc[df['Summary Code'] == 'EXC', 'Exception Notification'] = 'Exception Alert'
     
     # Replace 'None' with blank for 'Signatory' and 'Exception Notification'
-    tnt_df['Signatory'].fillna('', inplace=True)
-    tnt_df['Exception Notification'].fillna('', inplace=True)
+    df['Signatory'].fillna('', inplace=True)
+    df['Exception Notification'].fillna('', inplace=True)
     
     # Convert 'Origin Date' and 'Last Update (Date)' to datetime format
-    tnt_df['Origin Date'] = pd.to_datetime(tnt_df['Origin Date'], errors='coerce')
-    tnt_df['Last Update (Date)'] = pd.to_datetime(tnt_df['Last Update (Date)'], errors='coerce')
+    df['Origin Date'] = pd.to_datetime(df['Origin Date'], errors='coerce')
+    df['Last Update (Date)'] = pd.to_datetime(df['Last Update (Date)'], errors='coerce')
     
     # Convert 'Last Update (Hour)' to time format and format as 'hh:mm'
-    tnt_df['Last Update (Hour)'] = pd.to_datetime(tnt_df['Last Update (Hour)'], format='%H%M', errors='coerce').dt.strftime('%H:%M')
+    df['Last Update (Hour)'] = pd.to_datetime(df['Last Update (Hour)'], format='%H%M', errors='coerce').dt.strftime('%H:%M')
     
     # Add a new column 'Processing Days' using the custom function
-    tnt_df['Processing Days'] = tnt_df.apply(calculate_processing_days, axis=1)
+    df['Processing Days'] = df.apply(calculate_processing_days, axis=1)
     
     # Format the date columns as 'dd-mm-yyyy' without including the hour
-    tnt_df['Origin Date'] = tnt_df['Origin Date'].dt.strftime('%d-%m-%Y')
-    tnt_df['Last Update (Date)'] = tnt_df['Last Update (Date)'].dt.strftime('%d-%m-%Y')
+    df['Origin Date'] = df['Origin Date'].dt.strftime('%d-%m-%Y')
+    df['Last Update (Date)'] = df['Last Update (Date)'].dt.strftime('%d-%m-%Y')
     
     # Convert specific columns to title case
     title_case_columns = ['From (City)', 'From (Country)', 'To (City)', 'To (Country)', 'Last Location']
     for column in title_case_columns:
-        tnt_df[column] = tnt_df[column].apply(lambda x: x.title() if pd.notnull(x) else x)
+        df[column] = df[column].apply(lambda x: x.title() if pd.notnull(x) else x)
     
     # Map 'Summary Code' values
-    tnt_df['Summary Code'] = tnt_df['Summary Code'].map(map_summary_code)
+    df['Summary Code'] = df['Summary Code'].map(map_summary_code)
     
     # Add a new column 'URL'
     base_url = 'https://www.tnt.com/express/en_gc/site/shipping-tools/track.html?searchType=con&cons='
-    tnt_df['URL'] = base_url + tnt_df['Shipment Num.'].astype(str)
+    df['URL'] = base_url + df['Shipment Num.'].astype(str)
     
     # Rearrange the columns
-    tnt_df = tnt_df[['Carrier', 'Client Reference', 'Shipment Num.', 'Origin Date',
+    df = df[['Carrier', 'Client Reference', 'Shipment Num.', 'Origin Date',
                   'From (City)', 'From (Country)', 'To (City)', 'To (Country)',
                   'Num. of Pieces', 'Processing Days', 'Summary Code', 'Signatory',
                   'Carrier Code Status', 'Last Update (Date)', 'Last Update (Hour)',
                   'Last Location', 'Last Action', 'Exception Notification', 'URL']]
+    
+    
+    # Set carrier variable
+    carrier = 'TNT'
+    save_to_excel(df, carrier, report_path)
 
     
-    return tnt_df
+    return df

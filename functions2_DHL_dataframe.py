@@ -192,7 +192,7 @@ def clean_dates_and_processing_days(df):
     return df
     
     
-def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm):
+def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, report_path):
     """
     Process DHL shipment data, clean and format columns, and generate a DataFrame.
 
@@ -206,7 +206,8 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm):
     """
     
     import pandas as pd
-
+    
+    from functions0_basics import save_to_excel
     from functions2_DHL_dataframe import (extract_dhl_data,
                                           clean_city_country,
                                           clean_dates_and_processing_days)
@@ -241,7 +242,11 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm):
              'POD Signature Link', 'Remark', 'Next Steps', 'Estimated Date Delivery',
              'Estimated Time Delivery']]
     
+    # Set carrier variable
+    carrier = 'DHL'
+    save_to_excel(df, carrier, report_path)
+    
     return df
 
 # Example usage:
-# dhl_df = dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm)
+# dhl_df = dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, report_path)

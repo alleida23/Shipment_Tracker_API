@@ -131,3 +131,56 @@ def get_API_details(carrier):
 #carrier = "TNT"
 #url, max_shipments, API_KEY, API_SECRET, headers = get_API_details(carrier)
 
+
+
+def save_to_excel(dataframe, carrier, report_path):
+    """
+    Save a DataFrame to an Excel file.
+
+    Parameters:
+    - dataframe: The data to be saved. If not a DataFrame, it will be converted to one.
+    - report_path (str): The directory path where the Excel file will be saved.
+    
+    This function generates a unique filename based on the current date and time and saves the data
+    to an Excel file in the specified directory. It then prints the path where the file is saved.
+
+    Example usage:
+    save_to_excel(extracted_data, report_path)
+    """
+    
+    import os
+    import pandas as pd
+    from datetime import datetime
+    from IPython.display import display, Markdown
+
+    # Debugging prints
+    #print(f"Type of dataframe before conversion: {type(dataframe)}")
+    #print(f"Dataframe before conversion: {dataframe}")
+
+    # Convert data to DataFrame if it's not already
+    if not isinstance(dataframe, pd.DataFrame):
+        dataframe = pd.DataFrame(dataframe)
+    
+    # Get current carrier
+    current_carrier = carrier
+    
+    # Get current date and time for creating a unique filename
+    current_datetime = datetime.now().strftime("%d-%m-%Y %H_%M_%S")
+    excel_filename = f"{current_carrier} - Track Report {current_datetime}.xlsx"
+
+    # Create the full path for saving the file
+    full_path = os.path.join(report_path, excel_filename)
+
+    # Extract printed_path by removing leading "./", "/", ".\", or "\"
+    printed_path = full_path.lstrip("./\\/")
+
+    # Save the DataFrame to Excel
+    #dataframe.to_excel(full_path, index=False)
+    dataframe.to_excel(full_path, index=True)
+    
+    # Print path
+    print(f" ")
+    display(Markdown(f"New report file saved at: {printed_path}"))
+
+# Example usage
+#save_to_excel(new_track_report, report_path)
