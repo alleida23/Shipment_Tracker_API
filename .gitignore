@@ -10,4 +10,5 @@ Carrier\ API\ Data/*
 # Ignore all files inside 'Carrier API Data' folder
 ChromeDriver/*
 
-
+# Ignore Draft
+Draft.ipynb
