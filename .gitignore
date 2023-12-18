@@ -2,7 +2,7 @@
 Shipment\ Data/*.xlsx
 
 # Ignore all Excel files in folder 'Track Report'
-Track\ Report/*.xlsx
+Track\ Reports/*.xlsx
 
 # Ignore all files inside 'Carrier API Data' folder
 Carrier\ API\ Data/*
