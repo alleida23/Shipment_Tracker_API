@@ -6,7 +6,7 @@
   },
   "Logisteed": {
     "excel_tests_file_path": "./Testsinmacro.xlsx",
-    "folder_save_to_excel_path": "./REPORT/"
+    "folder_save_to_excel_path": "./REPORT/",
     "chromedriver_path":"./chromedriver-win32/chromedriver.exe"
   }
 }

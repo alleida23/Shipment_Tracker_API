@@ -8,7 +8,7 @@ def batch_tnt_shipments (tnt_shipments, max_shipments):
     len_shipm_numbers = len(consignment_numbers)
 
     #print(f"Total TNT consignment numbers: {len(consignment_numbers)}")
-    print(f"Total TNT shipment numbers: {len_shipm_numbers}")
+    #print(f"Total TNT shipment numbers: {len_shipm_numbers}")
 
     # Iterate over the consignments in batches
     for i in range(0, len(consignment_numbers), batch_size):

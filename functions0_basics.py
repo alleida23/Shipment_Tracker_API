@@ -23,11 +23,12 @@ def get_files_path(user_name="Logisteed"):
 
     return (
         selected_config.get("excel_tests_file_path"),
-        selected_config.get("folder_save_to_excel_path")
+        selected_config.get("folder_save_to_excel_path"),
+        selected_config.get("chromedriver_path")
     )
 
 # Example usage
-#excel_path, report_path = get_files_path("Logisteed")
+#excel_path, report_path, chromedriver_path = get_files_path("Logisteed")
 
 
 def shipments_not_delivered(excel_path):
