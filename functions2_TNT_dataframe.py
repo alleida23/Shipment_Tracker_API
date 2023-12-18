@@ -198,7 +198,8 @@ def tnt_to_dataframe(tnt_results, len_shipm_numbers, report_path):
     
     # Set carrier variable
     carrier = 'TNT'
-    save_to_excel(df, carrier, report_path)
-
+    #save_to_excel(df, carrier, report_path)
+    
+    print(f"Successfully retrieved {carrier} API data. Proceeding to scrape Proof of Delivery URLs...")
     
     return df

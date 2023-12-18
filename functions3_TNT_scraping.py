@@ -162,7 +162,7 @@ def search_tnt_pods (all_shipment_divs):
     df = pd.DataFrame(all_results)
     
     # Available PODs for delivered shipments
-    print(f"{(df['POD Available'] == 'Yes').sum()} shipments have available PODs. Proceeding to retrieve them...")
+    print(f"{(df['POD Available'] == 'Yes').sum()} shipments have available Proof of Delivery (POD). Initializing extraction...")
     
     return df
 
@@ -279,7 +279,7 @@ def tnt_pod_scraping (df, chromedriver_path):
     return pods_df
 
 
-def tnt_pods_dataframe(df, chromedriver_path):
+def tnt_pods_dataframe(df, chromedriver_path, report_path):
     """
     Once TNT data has been retrieved with the API, this function performs the following steps:
     - Filters the new report dataframe for "Delivered" shipments
@@ -296,6 +296,7 @@ def tnt_pods_dataframe(df, chromedriver_path):
     - tnt_df (pd.DataFrame): DataFrame with Proof of Delivery (POD) URLs merged based on 'Shipment Num.'.
     """
     import pandas as pd
+    from functions0_basics import save_to_excel
     from functions3_TNT_scraping import (batch_tnt_url, scrap_tnt_data,
                                          search_tnt_pods, tnt_pod_scraping)
 
@@ -325,6 +326,10 @@ def tnt_pods_dataframe(df, chromedriver_path):
 
     # Rename the dataframe
     tnt_df = merged_df.copy()
+    
+    # Set Carrier's name
+    carrier = 'TNT'
+    save_to_excel(tnt_df, carrier, report_path)
 
     return tnt_df
 
