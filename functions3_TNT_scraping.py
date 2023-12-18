@@ -300,6 +300,8 @@ def tnt_pods_dataframe(df, chromedriver_path, report_path):
     from functions3_TNT_scraping import (batch_tnt_url, scrap_tnt_data,
                                          search_tnt_pods, tnt_pod_scraping)
 
+    print(f"Proceeding to scrape Proof of Delivery URLs...")
+    
     # Initialize tnt_df
     tnt_df = df.copy()
 

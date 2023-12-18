@@ -90,7 +90,7 @@ def all_dhl_results(chunked_urls, headers):
                     error_message = error_details.get("detail", "Unknown error")
                     print(f"Error {response_individual.status_code} for {individual_url}: {error_message}")
                     # You might want to add additional error handling logic here
-                time.sleep(1)  # Add a delay to avoid rate limiting
+                time.sleep(2)  # Add a delay to avoid rate limiting
 
         else:
             # Handle other errors and return an error message

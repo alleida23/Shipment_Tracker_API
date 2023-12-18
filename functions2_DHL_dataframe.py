@@ -212,12 +212,39 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, re
                                           clean_city_country,
                                           clean_dates_and_processing_days)
     
-    # Extract data for all shipments
-    dhl_results = extract_dhl_data(all_dhl_results, shipments_not_delivered, max_dhl_shipm)
+    dhl_not_delivered = shipments_not_delivered[shipments_not_delivered['Carrier']=='DHL']
     
-    # Convert extracted data into a DataFrame
-    df = pd.DataFrame(dhl_results)
-     
+    # Count of DHL shipments to request
+    len_excel_dhl = len(dhl_not_delivered)
+    
+    # Set the max attempts
+    max_attempts = 3
+    attempt = 0
+    
+    # Check if data for all DHL shipments has been retrieved (max_attempts)
+    while attempt < max_attempts:
+        
+        # Extract data for all shipments
+        dhl_results = extract_dhl_data(all_dhl_results, shipments_not_delivered, max_dhl_shipm)
+        
+        # Convert extracted data into a DataFrame
+        df = pd.DataFrame(dhl_results)
+        
+        if len(df) == len_excel_dhl:
+            print(f"Successfully retrieved all DHL shipments data in attempt {attempt + 1}.")
+            break
+        
+        elif len(df) != len_excel_dhl:
+            print(f"Missing DHL data in attempt {attempt + 1}.")
+            attempt += 1
+            print(f"Attempt: {attempt} / {max_attempts}", end='\r')
+            
+        if attempt == max_attempts:
+            print(f"\nMaximum attempts reached. Could not retrieve all DHL shipments data.")
+            missing_dhl_shipm = list(set(dhl_not_delivered['T&T reference']) - set(df['Shipment Num.']))
+            print(f"Missing DHL data shipments: {missing_dhl_shipm}")
+            break
+    
     # 'From', 'To' and 'Last Location' columns
     df = clean_city_country(df)
     
@@ -232,7 +259,7 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, re
     base_url = 'https://www.dhl.com/es-en/home/tracking/tracking-express.html?submit=1&tracking-id='
     df['Shipment URL'] = base_url + df['Shipment Num.'].astype(str)
     
-    # Rearrange columns in specified order
+    # Rearrange columns in the specified order
     df = df[['Carrier', 'Client Reference', 'Shipment Num.', 'Service',
              'Origin Date', 'From (City)', 'From (Country)', 'To (City)',
              'To (Country)', 'Num. of Pieces', 'Processing Days',
@@ -242,13 +269,12 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, re
              'POD Signature Link', 'Remark', 'Next Steps', 'Estimated Date Delivery',
              'Estimated Time Delivery']]
     
-    print(f"Successfully retrieved {carrier} API data.")
-    
     # Set carrier variable
     carrier = 'DHL'
     save_to_excel(df, carrier, report_path)
     
     return df
+
 
 # Example usage:
 # dhl_df = dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, report_path)
