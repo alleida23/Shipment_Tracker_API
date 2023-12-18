@@ -129,7 +129,7 @@ def map_summary_code(summary_code):
     else:
         return summary_code
 
-def tnt_to_dataframe(tnt_results, len_shipm_numbers, report_path):
+def tnt_to_dataframe(tnt_results, shipments_not_delivered, len_shipm_numbers, report_path):
     
     """
     Convert TNT shipment data to a formatted DataFrame.
@@ -150,10 +150,42 @@ def tnt_to_dataframe(tnt_results, len_shipm_numbers, report_path):
                                           calculate_processing_days,
                                           map_summary_code)
     
-    tnt_data = extract_TNT_data(tnt_results, len_shipm_numbers)
+    # Set carrier variable
+    carrier = 'TNT'
     
-    # Convert list of dictionaries to DataFrame
-    df = pd.DataFrame(tnt_data)
+    # Filter rows where the 'Carrier' column is 'TNT'
+    tnt_not_delivered = shipments_not_delivered[shipments_not_delivered['Carrier'] == carrier]
+    
+    # Count of TNT shipments to request
+    len_excel_tnt = len(tnt_not_delivered)
+    
+    # Set the max attempts
+    max_attempts = 3
+    attempt = 0
+    
+    # Check if data for all TNT shipments has been retrieved (max_attempts)
+    while attempt < max_attempts:
+        
+        # Extract data for all shipments
+        tnt_data = extract_TNT_data(tnt_results, len_shipm_numbers)
+    
+        # Convert extracted data to DataFrame
+        df = pd.DataFrame(tnt_data)
+        
+        if len(df) == len_excel_tnt:
+            print(f"Successfully retrieved all TNT shipments data in attempt {attempt + 1}.")
+            break
+        
+        elif len(df) != len_excel_tnt:
+            print(f"Missing TNT data in attempt {attempt + 1}.")
+            attempt += 1
+            print(f"Attempt: {attempt} / {max_attempts}", end='\r')
+            
+        if attempt == max_attempts:
+            print(f"\nMaximum attempts reached. Could not retrieve all TNT shipments data.")
+            missing_tnt_shipm = [shipm for shipm in tnt_not_delivered['T&T reference'] if shipm not in df['Shipment Num.']]
+            print(f"Missing TNT data shipments: {missing_tnt_shipm}")
+            break
     
     # Update 'Exception Notification' based on the condition
     df.loc[df['Summary Code'] == 'EXC', 'Exception Notification'] = 'Exception Alert'
@@ -195,10 +227,7 @@ def tnt_to_dataframe(tnt_results, len_shipm_numbers, report_path):
                   'Carrier Code Status', 'Last Update (Date)', 'Last Update (Hour)',
                   'Last Location', 'Last Action', 'Exception Notification', 'URL']]
     
-    
-    # Set carrier variable
-    carrier = 'TNT'
-    print(f"Successfully retrieved {carrier} API data.")
+    # Save the dataframe as an excel file
     save_to_excel(df, carrier, report_path)
     
     return df
