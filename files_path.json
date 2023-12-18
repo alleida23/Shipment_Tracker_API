@@ -4,9 +4,16 @@
     "folder_save_to_excel_path": "./Track Reports",
     "chromedriver_path":"./ChromeDriver/chromedriver-mac-arm64/chromedriver"
   },
-  "Logisteed": {
+  "Bernat": {
     "excel_tests_file_path": "./Testsinmacro.xlsx",
     "folder_save_to_excel_path": "./REPORT/",
     "chromedriver_path":"./chromedriver-win32/chromedriver.exe"
+  },
+  "Logisteed": {
+    "excel_tests_file_path": "G:\HTS comun\1.1 Exportación\1.1.4 Recambios\1.1.4.8 Seguimientos Envíos\DailyReportMacro.xlsm",
+    "folder_save_to_excel_path": "G:\HTS comun\1.1 Exportación\1.1.4 Recambios\1.1.4.8 Seguimientos Envíos\REPORT API\",
+    "chromedriver_path":"None"
   }
 }
+
+ 
