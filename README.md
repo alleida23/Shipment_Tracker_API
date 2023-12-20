@@ -13,7 +13,7 @@ Awaiting connections from additional transport companies' APIs, the program will
 
 ## Shipment Tracker API - Evolution
 
-The Shipment Tracker API project, initiated in November 2023, has undergone significant evolution since its inception. Before putting the APIs on the table, the initial attempt involved web scraping on the main carrier's website, TNT Express, using Selenium to interact with its web interface and extract all shipment information. Although functional, and despite reducing the process to an average of 1-2 minutes for tracking hundreds of shipments, implementing this approach in the international company's computer systems posed challenges. There were also considerations of best practices when contemplating web scraping the carrier's site, especially in the presence of an available API.
+The Shipment Tracker project, initiated in November 2023, has undergone significant evolution since its inception. Before putting the APIs on the table, the initial attempt involved web scraping on the main carrier's website, TNT Express, using Selenium to interact with its web interface and extract all shipment information. Although functional, and despite reducing the process to an average of 1-2 minutes for tracking hundreds of shipments, implementing this approach in the international company's computer systems posed challenges. There were also considerations of best practices when contemplating web scraping the carrier's site, especially in the presence of an available API.
 
 ![Shipment Tracker (3)](https://github.com/alleida23/Shipment_Tracker_API/assets/124719215/aeca6451-5880-4361-8be2-e6f53c4ff08a)
 
