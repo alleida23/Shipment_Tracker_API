@@ -33,21 +33,24 @@ To date, through API connections, shipments from both TNT Express and DHL have b
 - **functions2_TNT_dataframe.py:** Functions for creating DataFrames and processing data for TNT.
 
 Not Included in this repository:
-- **Carrier API Data:** Includes **carrier_APIs.json**, containing the API request URL, the maximum number of shipments to query per request, credentials, and headers for inclusion in the request.
+- **Carrier API Data:** Encompasses **carrier_APIs.json**, which holds the API request URL, essential details, headers, and the maximum number of shipments to query per request.
 
 Note:
 
-If paths in files_path.json are not modified, the following folders must be at the same level as the ipynb file:
-- "Shipment Data" (contains the original Excel file with columns ['LOGIS ID', 'Carrier', 'T&T reference', 'Status']).
-- "Track Reports" (where status reports will be saved).
+_If paths in files_path.json are not modified, the following folders must be at the same level as the ipynb file:_
+- _"Shipment Data" (contains the original Excel file with columns ['LOGIS ID', 'Carrier', 'T&T reference', 'Status'])._
+- _"Track Reports" (where status reports will be saved)._
 
 
 ## Usage
 
-1. Open and run the Jupyter Notebook (`Shipment_Tracker_API.ipynb`).
-2. Ensure that the required Python packages are installed.
-3. Adjust the paths to `excel_path`, `chromedriver_path`, and `report_path`.
-4. Follow the instructions in the notebook for batch processing and web scraping.
+1. Adjust the paths in `files_path.json`, specifically `excel_path`, `chromedriver_path`*, and `report_path`.
+2. Update your API access credentials in `carrier_APIs.json`. Keep in mind that, at this time, data extraction is only functional for TNT Express and DHL services.
+3. Open and run the Jupyter Notebook `Shipment_Tracker_API.ipynb`.
+
+Note: 
+
+_ChromeDriver path will be further removed as it's no longer necessary._
 
 
 ## Future Prospects
