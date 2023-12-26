@@ -84,29 +84,55 @@ def extract_TNT_data(results_list, len_shipm_numbers):
     return tnt_results
 
 
+
+
 def calculate_processing_days(row):
-    
     """
-    Calculate the processing days based on shipment data.
+    Calculate the processing days based on shipment data (working days only).
 
     Parameters:
     - row (pandas.Series): Row of a DataFrame containing shipment data.
 
     Returns:
-    - int: Number of processing days.
+    - int: Number of working days.
     """
     
     import pandas as pd
-    from datetime import date
+    from datetime import datetime, date, timedelta
     
-    if row['Summary Code'] == 'DEL' and not pd.isnull(row['Origin Date']):
-        return (row['Last Update (Date)'] - row['Origin Date']).days
-    elif not pd.isnull(row['Origin Date']):
-        current_date = date.today()
-        origin_date = row['Origin Date'].date()
-        return (current_date - origin_date).days
+    # Initialize counters with 0 to exclude the origin date
+    total_days = 0
+    working_days = 0
+
+    # Check if the summary code is 'DEL' and the last update date is not null
+    if row['Summary Code'] == 'DEL' and not pd.isnull(row['Last Update (Date)']):
+        # Get origin and last update dates from the row
+        origin_date = row['Origin Date']
+        last_update_date = pd.Timestamp(row['Last Update (Date)'])
     else:
-        return None
+        # If the last update date is null, set origin date to the row's 'Origin Date'
+        origin_date = row['Origin Date']
+        # Set last update date to the current date
+        last_update_date = pd.Timestamp(date.today())
+
+    # Iterate from the day after the origin date to the last update date
+    origin_date += timedelta(days=1)
+    while origin_date <= last_update_date:
+        # Increment total days
+        total_days += 1
+
+        # Check if the current day is a weekday (Monday to Friday)
+        if origin_date.weekday() < 5:
+            working_days += 1
+
+        # Move to the next day
+        origin_date += timedelta(days=1)
+
+    return working_days
+
+# Example usage:
+# df['Processing Days'] = df.apply(calculate_processing_days, axis=1)
+
 
 def map_summary_code(summary_code):
     

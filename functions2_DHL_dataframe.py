@@ -137,41 +137,64 @@ def clean_city_country (df):
     
     return df
 
+
 def calculate_processing_days(row):
     """
-    Calculate the processing days based on shipment data.
+    Calculate the processing days based on shipment data (working days only).
 
     Parameters:
-    - row (pandas.Series): Row of a DataFrame containing shipment data.
+    - row (pandas.Series): Row of a DataFrame containing DHL shipment data.
 
     Returns:
-    - int: Number of processing days.
+    - int: Number of working days.
     """
     
     import pandas as pd
-    from datetime import date
+    from datetime import datetime, date, timedelta
     
     # Convert 'Origin Date' and 'Last Update (Date)' to datetime
     origin_date = pd.to_datetime(row['Origin Date'])
     last_update_date = pd.to_datetime(row['Last Update (Date)'])
 
-    if row['Carrier Status'] == 'Delivered' and not pd.isnull(origin_date):
-        return (last_update_date - origin_date).days
-    elif not pd.isnull(origin_date):
-        current_date = pd.to_datetime(date.today())
-        return (current_date - origin_date).days
-    else:
-        return None
+    # Initialize counters with 0 to exclude the origin date
+    total_days = 0
+    working_days = 0
+
+    # Iterate from the day after the origin date to the last update date
+    origin_date += timedelta(days=1)
+    while origin_date <= last_update_date:
+        # Increment total days
+        total_days += 1
+
+        # Check if the current day is a weekday (Monday to Friday)
+        if origin_date.weekday() < 5:
+            working_days += 1
+
+        # Move to the next day
+        origin_date += timedelta(days=1)
+
+    return working_days
+
+# Example usage:
+# df['Processing Days'] = df.apply(calculate_processing_days, axis=1)
 
 
 def clean_dates_and_processing_days(df):
+    """
+    Clean and format columns, and calculate processing days for DHL shipments.
+
+    Parameters:
+    - df (pandas.DataFrame): DataFrame containing DHL shipment data.
+
+    Returns:
+    - pandas.DataFrame: DataFrame with formatted columns and additional information.
+    """
     
     import pandas as pd
-    
     from functions2_DHL_dataframe import calculate_processing_days
     
-    # Convert 'Origin Date' to the desired format 'YYYY-MM-DD'
-    df['Origin Date'] = pd.to_datetime(df['Origin Date']).dt.strftime('%Y-%m-%d')
+    # Convert 'Origin Date' to the desired format 'DD-MM-YYYY'
+    df['Origin Date'] = pd.to_datetime(df['Origin Date']).dt.strftime('%d-%m-%Y')
 
     # Convert 'Last Update' to datetime
     df['Last Update'] = pd.to_datetime(df['Last Update'])
@@ -182,14 +205,15 @@ def clean_dates_and_processing_days(df):
 
     # Drop the original 'Last Update' column
     df = df.drop(['Last Update'], axis=1)
-    
-    # Apply the function to create a new column 'Processing Days'
+
+    # Apply the function to create a new column 'Processing Days (Working)'
     df['Processing Days'] = df.apply(calculate_processing_days, axis=1)
-    
+
     # Change Date Format
     df[['Origin Date', 'Last Update (Date)']] = df[['Origin Date', 'Last Update (Date)']].apply(lambda x: pd.to_datetime(x).dt.strftime('%d-%m-%Y'))
 
     return df
+
     
     
 def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, report_path):
@@ -242,7 +266,14 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, re
         if attempt == max_attempts:
             print(f"\nMaximum attempts reached. Could not retrieve all DHL shipments data.")
             missing_dhl_shipm = list(set(dhl_not_delivered['T&T reference']) - set(df['Shipment Num.']))
-            print(f"Missing DHL data shipments: {missing_dhl_shipm}")
+            print(f"\nMissing DHL data shipments URL: ")
+            
+            base_url = 'https://www.dhl.com/es-en/home/tracking/tracking-express.html?submit=1&tracking-id='
+            
+            for missing_shipm in missing_dhl_shipm:
+                missing_shipm_url = f"{base_url}{missing_shipm}"
+                print(missing_shipm_url)
+            
             break
     
     # 'From', 'To' and 'Last Location' columns
