@@ -267,12 +267,34 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, re
             print(f"\nMaximum attempts reached. Could not retrieve all DHL shipments data.")
             missing_dhl_shipm = list(set(dhl_not_delivered['T&T reference']) - set(df['Shipment Num.']))
             print(f"\nMissing DHL data shipments URL: ")
-            
+
             base_url = 'https://www.dhl.com/es-en/home/tracking/tracking-express.html?submit=1&tracking-id='
-            
+
+            # Create a DataFrame with missing shipment numbers
+            missing_shipments_df = pd.DataFrame({'Shipment Num.': missing_dhl_shipm})
+
             for missing_shipm in missing_dhl_shipm:
                 missing_shipm_url = f"{base_url}{missing_shipm}"
                 print(missing_shipm_url)
+
+                # Get the corresponding LOGIS ID from shipments_not_delivered
+                client_reference = shipments_not_delivered.loc[
+                    (shipments_not_delivered['Carrier'] == 'DHL') &
+                    (shipments_not_delivered['T&T reference'] == missing_shipm),
+                    'LOGIS ID'
+                ].values[0]
+
+                # Fill in the missing shipment row in missing_shipments_df
+                missing_shipments_df.loc[
+                    missing_shipments_df['Shipment Num.'] == missing_shipm,
+                    'Client Reference'
+                ] = client_reference
+
+            # Fill NaN values in the missing_shipments_df with empty strings
+            missing_shipments_df = missing_shipments_df.fillna(' ')
+
+            # Concatenate the missing_shipments_df to df
+            df = pd.concat([df, missing_shipments_df], ignore_index=True)
             
             break
     
