@@ -50,7 +50,7 @@ def make_tnt_requests (df):
                 },
                 "levelOfDetail": {
                     "complete": {
-                        "locale": "ES"
+                        "locale": "en_US"
                     },
                     "pod": {
                         "format": "URL"
