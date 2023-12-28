@@ -67,7 +67,7 @@ def extract_TNT_data(results_list, len_shipm_numbers):
                 "To (City)": destination_city,
                 "To (Country)": destination_country,
                 "Num. of Pieces": num_of_pieces,
-                "Summary Code": summary_tnt_code,
+                "Carrier Status": summary_tnt_code,
                 "Signatory": signatory,
                 "Carrier Code Status": last_tnt_status_code,
                 "Last Update (Date)": last_tnt_update_date,
@@ -105,7 +105,7 @@ def calculate_processing_days(row):
     working_days = 0
 
     # Check if the summary code is 'DEL' and the last update date is not null
-    if row['Summary Code'] == 'DEL' and not pd.isnull(row['Last Update (Date)']):
+    if row['Carrier Status'] == 'DEL' and not pd.isnull(row['Last Update (Date)']):
         # Get origin and last update dates from the row
         origin_date = row['Origin Date']
         last_update_date = pd.Timestamp(row['Last Update (Date)'])
@@ -137,7 +137,7 @@ def calculate_processing_days(row):
 def map_summary_code(summary_code):
     
     """
-    Map summary codes to human-readable descriptions.
+    Map summary codes (Carrier Status) to human-readable descriptions.
 
     Parameters:
     - summary_code (str): Summary code.
@@ -209,12 +209,41 @@ def tnt_to_dataframe(tnt_results, shipments_not_delivered, len_shipm_numbers, re
             
         if attempt == max_attempts:
             print(f"\nMaximum attempts reached. Could not retrieve all TNT shipments data.")
-            missing_tnt_shipm = [shipm for shipm in tnt_not_delivered['T&T reference'] if shipm not in df['Shipment Num.']]
-            print(f"Missing TNT data shipments: {missing_tnt_shipm}")
+            missing_tnt_shipm = list(set(tnt_not_delivered['T&T reference']) - set(df['Shipment Num.']))
+            print(f"\nMissing TNT data shipments URL: ")
+            
+            base_url = 'https://www.tnt.com/express/en_gc/site/shipping-tools/track.html?searchType=con&cons='
+            
+            # Create a DataFrame with missing shipment numbers
+            missing_shipments_df = pd.DataFrame({'Shipment Num.': missing_dhl_shipm})
+
+            for missing_shipm in missing_tnt_shipm:
+                missing_shipm_url = f"{base_url}{missing_shipm}"
+                print(missing_shipm_url)
+
+                # Get the corresponding LOGIS ID from shipments_not_delivered
+                client_reference = shipments_not_delivered.loc[
+                    (shipments_not_delivered['Carrier'] == 'TNT') &
+                    (shipments_not_delivered['T&T reference'] == missing_shipm),
+                    'LOGIS ID'
+                ].values[0]
+
+                # Fill in the missing shipment row in missing_shipments_df
+                missing_shipments_df.loc[
+                    missing_shipments_df['Shipment Num.'] == missing_shipm,
+                    'Client Reference'
+                ] = client_reference
+
+            # Fill NaN values in the missing_shipments_df with empty strings
+            missing_shipments_df = missing_shipments_df.fillna(' ')
+
+            # Concatenate the missing_shipments_df to df
+            df = pd.concat([df, missing_shipments_df], ignore_index=True)
+            
             break
     
     # Update 'Exception Notification' based on the condition
-    df.loc[df['Summary Code'] == 'EXC', 'Exception Notification'] = 'Exception Alert'
+    df.loc[df['Carrier Status'] == 'EXC', 'Exception Notification'] = 'Exception Alert'
     
     # Replace 'None' with blank for 'Signatory' and 'Exception Notification'
     df['Signatory'].fillna('', inplace=True)
@@ -240,18 +269,21 @@ def tnt_to_dataframe(tnt_results, shipments_not_delivered, len_shipm_numbers, re
         df[column] = df[column].apply(lambda x: x.title() if pd.notnull(x) else x)
     
     # Map 'Summary Code' values
-    df['Summary Code'] = df['Summary Code'].map(map_summary_code)
+    df['Carrier Status'] = df['Carrier Status'].map(map_summary_code)
     
     # Add a new column 'URL'
     base_url = 'https://www.tnt.com/express/en_gc/site/shipping-tools/track.html?searchType=con&cons='
-    df['URL'] = base_url + df['Shipment Num.'].astype(str)
+    df['Shipment URL'] = base_url + df['Shipment Num.'].astype(str)
+    
+    # Remove the forward slash ('/') from the 'Client Reference' column values
+    df['Client Reference'] = df['Client Reference'].str.replace('/', '')
     
     # Rearrange the columns
     df = df[['Carrier', 'Client Reference', 'Shipment Num.', 'Origin Date',
                   'From (City)', 'From (Country)', 'To (City)', 'To (Country)',
-                  'Num. of Pieces', 'Processing Days', 'Summary Code', 'Signatory',
+                  'Num. of Pieces', 'Processing Days', 'Carrier Status', 'Signatory',
                   'Carrier Code Status', 'Last Update (Date)', 'Last Update (Hour)',
-                  'Last Location', 'Last Action', 'Exception Notification', 'URL']]
+                  'Last Location', 'Last Action', 'Exception Notification', 'Shipment URL']]
     
     # Save the dataframe as an excel file
     save_to_excel(df, carrier, report_path)

@@ -63,7 +63,7 @@ def shipments_not_delivered(excel_path):
     shipment_not_delivered = shipment_data[shipment_data["Status"] != "DELIVERED"]
     
     total_num_shipm = len(shipment_not_delivered)
-    display(Markdown(f"**{total_num_shipm} shipments NOT DELIVERED in your file**"))
+    display(Markdown(f"**Not Delivered** Shipments by Carrier in Former Report: {total_num_shipm}"))
 
     """ Information by Carrier """
 
