@@ -249,7 +249,6 @@ def save_backup(excel_path):
 #save_backup(excel_path)
 
 
-
 def convert_urls_to_links(df):
     """
     Convert URLs in specified columns to clickable links in a DataFrame.
@@ -267,32 +266,19 @@ def convert_urls_to_links(df):
     # Copy the DataFrame to avoid modifying the original
     df_result = df.copy()
 
-    # Check if 'Carrier' column exists in the DataFrame
-    if 'Carrier' in df_result.columns:
-        # Determine the carrier
-        carrier = df_result['Carrier'].iloc[0].upper()
+    # Define the URL columns
+    url_columns = ['Shipment URL', 'POD Link', 'POD Signature Link']
 
-        # Define the URL columns based on the carrier
-        url_columns = {
-            'DHL': ['Shipment URL', 'POD Link', 'POD Signature Link'],
-            'TNT': ['URL']
-            # Add more carriers and their URL columns as needed
-        }
-
-        # Get the list of URL columns based on the carrier
-        carrier_columns = url_columns.get(carrier, [])
-
-        # Iterate over each specified column for the given carrier
-        for col in carrier_columns:
-            # Check if the column exists in the DataFrame
-            if col in df_result.columns:
-                # Apply a function to convert each URL to a clickable link
-                df_result[col] = df_result[col].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>' if pd.notnull(x) else x)
+    # Iterate over each specified column
+    for col in url_columns:
+        # Check if the column exists in the DataFrame
+        if col in df_result.columns:
+            # Apply a function to convert each URL to a clickable link
+            df_result[col] = df_result[col].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>' if pd.notnull(x) else x)
 
     # Display the DataFrame with clickable links in a Jupyter Notebook
     display(HTML(df_result.to_html(escape=False, render_links=True)))
 
     return df_result
-
 
 
