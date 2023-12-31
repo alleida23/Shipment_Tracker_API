@@ -323,6 +323,9 @@ def dhl_to_dataframe(all_dhl_results, shipments_not_delivered, max_dhl_shipm, re
              'POD Signature Link', 'Remark', 'Next Steps', 'Estimated Date Delivery',
              'Estimated Time Delivery']]
     
+    # Fill NaN values in the DataFrame with empty strings
+    df = df.fillna('')
+    
     # Set carrier variable
     carrier = 'DHL'
     save_to_excel(df, carrier, report_path)

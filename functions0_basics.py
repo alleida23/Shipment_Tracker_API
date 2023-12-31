@@ -282,3 +282,28 @@ def convert_urls_to_links(df):
     return df_result
 
 
+def search_and_display_shipments(updated_report):
+    """
+    Display shipment information based on the provided shipment numbers in the updated report.
+
+    Parameters:
+    - updated_report (pandas.DataFrame): Updated shipment report DataFrame.
+
+    Returns:
+    None
+    """
+    from functions0_basics import convert_urls_to_links
+    
+    shipm_numbers_input = input('Enter Shipment Numbers (comma-separated): ')
+    shipm_numbers = [num.strip() for num in shipm_numbers_input.split(',')]
+
+    found_shipments = updated_report[updated_report['T&T reference'].isin(shipm_numbers)]
+
+    if not found_shipments.empty:
+        display_rows = convert_urls_to_links(found_shipments)
+    else:
+        print(f"No matching shipments found in this report.")
+
+# Example Usage:
+#search_and_display_shipments(updated_report)
+

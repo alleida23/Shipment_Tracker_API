@@ -63,8 +63,8 @@ def update_shipment_data(carrier, df, current_df):
     - df (DataFrame): Updated main DataFrame.
 
     Description:
-    This function updates the 'Status', 'Signatory', 'Last Update', 'In Transit Days', 'Shipment URL', and potentially 'POD URL'
-    columns in the main DataFrame ('df') based on the information in the current carrier's report ('current_df').
+    This function updates the 'Status', 'Signatory', 'Last Update', 'In Transit Days', 'Shipment URL',
+    and potentially 'POD URL' columns in the main DataFrame ('df') based on the information in the current carrier's report ('current_df').
     It considers the specified carrier, handles different status column names, and displays shipment count changes.
 
     Example Usage:
@@ -83,8 +83,11 @@ def update_shipment_data(carrier, df, current_df):
         condition = (current_df['Client Reference'] == row['LOGIS ID']) & (current_df['Shipment Num.'] == row['T&T reference'])
         if condition.any():
             # Carrier Status
-            current_signatory = current_df.loc[condition, 'Carrier Status'].values[0].upper()
-            df.at[index, 'Status'] = current_signatory
+            current_carrier_status = current_df.loc[condition, 'Carrier Status'].values[0]
+            if isinstance(current_carrier_status, str):  # Check if it's already a string
+                df.at[index, 'Status'] = current_carrier_status.upper()
+            else:
+                df.at[index, 'Status'] = str(current_carrier_status).upper()
 
             # Signatory
             current_signatory = current_df.loc[condition, 'Signatory'].values[0]
@@ -93,6 +96,10 @@ def update_shipment_data(carrier, df, current_df):
             # Last Update
             current_last_update = current_df.loc[condition, 'Last Update (Date)'].values[0]
             df.at[index, 'Last Update'] = current_last_update
+            
+            # Exception Notification (TNT)
+            current_exception_notif = current_df.loc[condition, 'Exception Notification'].values[0]
+            df.at[index, 'Exception Notification'] = current_exception_notif
             
             # Last Action
             current_last_action = current_df.loc[condition,'Last Action'].values[0]
@@ -120,7 +127,6 @@ def update_shipment_data(carrier, df, current_df):
 
     return df
 
-# Example Usage
 # df = update_shipment_data('TNT', df, current_df)
 
 
@@ -204,14 +210,15 @@ def save_updated_report(df, excel_path):
     display(Markdown(f"Updated general report file saved at: {printed_path}"))
 
 
-    
-def update_former_report(excel_path, *dataframes):
+
+def update_former_report(excel_path, tnt_df=None, dhl_df=None):
     """
     Update the original Excel file with new data from the provided DataFrames.
 
     Parameters:
     - excel_path (str): Path to the original Excel file.
-    - *dataframes (pandas.DataFrame): One or more DataFrames containing new data.
+    - tnt_df (pandas.DataFrame): DataFrame containing new TNT data.
+    - dhl_df (pandas.DataFrame): DataFrame containing new DHL data.
 
     Returns:
     None
@@ -227,79 +234,75 @@ def update_former_report(excel_path, *dataframes):
     is displayed, indicating the successful update and providing the path to the updated Excel file.
 
     Example Usage:
-    update_former_report(excel_path, tnt_df, dhl_df)
+    update_former_report(excel_path, tnt_df=tnt_df, dhl_df=dhl_df)
     """
+    
     import pandas as pd
     from functions3_update_report import (update_shipment_data,
-                                          calculate_days_since_last_update,
-                                          save_updated_report)
-    
-    # Read the original Excel file into a DataFrame
-    df = pd.read_excel(excel_path)
+                                          calculate_days_since_last_update, save_updated_report)
+  
+    try:
+        # Read the original Excel file into a DataFrame
+        df = pd.read_excel(excel_path)
 
-    # Fill NaN values in the DataFrame with empty strings
-    df = df.fillna('')
+        # Fill NaN values in the DataFrame with empty strings
+        df = df.fillna('')
 
-    # Column names for the new general report
-    columns_new_df = ['LOGIS ID', 'shiping date', 'Reference 1', 'Reference 2', 'Reference 3',
-                       'Service', 'Carrier', 'T&T reference', 'Destination name',
-                       'Destination address', 'Postal code', 'CC', 'Status', 'Signatory',
-                       'DELIVERED', 'Comments logisteed', 'In Transit Days',
-                       'Email Send Date', 'Shipment URL', 'POD URL']
+        # Column names for the new general report
+        columns_new_df = ['LOGIS ID', 'shiping date', 'Reference 1', 'Reference 2', 'Reference 3',
+                          'Service', 'Carrier', 'T&T reference', 'Destination name',
+                          'Destination address', 'Postal code', 'CC', 'Status', 'Signatory',
+                          'DELIVERED', 'Exception Notification', 'Comments logisteed',
+                          'In Transit Days','Email Send Date', 'Shipment URL', 'POD URL']
 
-    # Ensure columns exist or create them
-    for column in columns_new_df:
-        if column not in df.columns:
-            df[column] = ''
+        # Ensure columns exist or create them
+        for column in columns_new_df:
+            if column not in df.columns:
+                df[column] = ''
 
-    # Rename columns
-    columns_to_rename = {'DELIVERED': 'Last Update'}
-    df.rename(columns=columns_to_rename, inplace=True)
+        # Rename columns
+        columns_to_rename = {'DELIVERED': 'Last Update'}
+        df.rename(columns=columns_to_rename, inplace=True)
 
-    for input_df in dataframes:
-        try:
-            # Example scenario for tnt_df
-            if input_df is not None and input_df is tnt_df:
-                carrier = 'TNT'
-                current_df = tnt_df.copy()
-                df = update_shipment_data(carrier, df, current_df)
-            elif input_df is not None and input_df is dhl_df:
-                # Example scenario for dhl_df
-                carrier = 'DHL'
-                current_df = dhl_df.copy()
-                df = update_shipment_data(carrier, df, current_df)
-                # Add your dhl-specific logic here
-        except Exception as e:
-            # Handle exceptions if necessary
-            print(f"An error occurred: {e}")
-    
-    # Format 'Last Update' date (and exclude time)
-    df['Last Update'] = df['Last Update'].apply(lambda x: x.strftime('%d-%m-%Y') if str(x).endswith('00:00:00') else x)
-    
-    # Calculate days since last update notification
-    df = calculate_days_since_last_update(df, max_reclamation_period_delivered=20)
-    
-    # Rename the 'shiping date' column to 'Shipping Date'
-    df.rename(columns={'shiping date': 'Shipping Date'}, inplace=True)
-    
-    # Format dates
-    df['Shipping Date'] = df['Shipping Date'].dt.strftime('%d-%m-%Y')
-    df['Last Update'] = df['Last Update'].dt.strftime('%d-%m-%Y')
-    
-    df = df[['LOGIS ID', 'Shipping Date', 'Reference 1', 'Reference 2', 'Reference 3',
-             'Service', 'Carrier', 'T&T reference', 'Destination name',
-             'Destination address', 'Postal code', 'CC', 'Status', 'Last Update',
-             'In Transit Days', 'Comments logisteed', 'Signatory',
-             'Days since Last Update','Email Send Date', 'Shipment URL', 'POD URL']]
-    
-    # 'TNT', 'UPS',
-    
-    
-    # Save the updated DataFrame to the original Excel file
-    save_updated_report(df, excel_path)
-    
+        # Update with TNT data
+        if tnt_df is not None:
+            carrier = 'TNT'
+            current_df = tnt_df.copy()
+            df = update_shipment_data(carrier, df, current_df)
+
+        # Update with DHL data
+        if dhl_df is not None:
+            carrier = 'DHL'
+            current_df = dhl_df.copy()
+            df = update_shipment_data(carrier, df, current_df)
+            
+
+        # Format 'Last Update' date (and exclude time)
+        df['Last Update'] = df['Last Update'].apply(lambda x: x.strftime('%d-%m-%Y') if str(x).endswith('00:00:00') else x)
+
+        # Calculate days since last update notification
+        df = calculate_days_since_last_update(df, max_reclamation_period_delivered=20)
+
+        # Rename the 'shiping date' column to 'Shipping Date'
+        df.rename(columns={'shiping date': 'Shipping Date'}, inplace=True)
+
+        # Format dates
+        df['Shipping Date'] = df['Shipping Date'].dt.strftime('%d-%m-%Y')
+        df['Last Update'] = df['Last Update'].dt.strftime('%d-%m-%Y')
+
+        df = df[['LOGIS ID', 'Shipping Date', 'Reference 1', 'Reference 2', 'Reference 3',
+                 'Service', 'Carrier', 'T&T reference', 'Destination name',
+                 'Destination address', 'Postal code', 'CC', 'Status', 'Last Update',
+                 'In Transit Days', 'Exception Notification','Comments logisteed', 'Signatory',
+                 'Days since Last Update','Email Send Date', 'Shipment URL', 'POD URL']]
+
+        # Save the updated DataFrame to the original Excel file
+        #save_updated_report(df, excel_path)
+
+    except Exception as e:
+        # Handle exceptions if necessary
+        print(f"An error occurred: {e}")
+
     return df
 
-
-# Example usage:
-#updated_report = update_former_report(excel_path, tnt_df, dhl_df)
+# updated_report = update_former_report(excel_path, tnt_df=tnt_df, dhl_df=dhl_df)
